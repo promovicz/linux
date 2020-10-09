@@ -937,6 +937,13 @@ static struct thermal_zone_device_ops psy_tzd_ops = {
 	.get_temp = power_supply_read_temp,
 };
 
+static struct thermal_zone_params psy_tzd_params = {
+#ifdef CONFIG_POWER_SUPPLY_HWMON
+	/* Keep thermal subsystem from double-registering to hwmon */
+	.no_hwmon = true,
+#endif
+};
+
 static int psy_register_thermal(struct power_supply *psy)
 {
 	int i;
@@ -948,7 +955,7 @@ static int psy_register_thermal(struct power_supply *psy)
 	for (i = 0; i < psy->desc->num_properties; i++) {
 		if (psy->desc->properties[i] == POWER_SUPPLY_PROP_TEMP) {
 			psy->tzd = thermal_zone_device_register(psy->desc->name,
-					0, 0, psy, &psy_tzd_ops, NULL, 0, 0);
+					0, 0, psy, &psy_tzd_ops, &psy_tzd_params, 0, 0);
 			return PTR_ERR_OR_ZERO(psy->tzd);
 		}
 	}
